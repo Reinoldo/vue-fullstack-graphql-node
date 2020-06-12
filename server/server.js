@@ -1,5 +1,5 @@
 const { ApolloServer } = require("apollo-server");
-console.log(ApolloServer);
+
 const typeDefs = `
     type Item {
         id: Int
@@ -19,7 +19,7 @@ const typeDefs = `
     type Mutation{
         saveItem(item: ItemInput): Item
         updateItem(id: Int!, type: String, description: String): Item
-        deleteItem(item: ItemInput): Item!
+        deleteItem(id: Int): Boolean
     }
     
 
@@ -27,16 +27,14 @@ const typeDefs = `
 
 const items = [
     { id: 1, type: "prefix", description: "reinoldo" },
-    { id: 2, type: "sufix", description: "oliveira" },
-    { id: 3, type: "sufix", description: "teste" },
+    { id: 2, type: "suffix", description: "oliveira" },
+    { id: 3, type: "suffix", description: "teste" },
     { id: 4, type: "prefix", description: "rei" }
 
 ]
 const resolvers = {
     Query: {
         items(_, args) {
-            console.log(args);
-
             return items.filter(item => item.type == args.type);
         }
 
@@ -45,13 +43,15 @@ const resolvers = {
         saveItem(_, args) {
             const item = args.item;
             item.id = Math.floor(Math.random() * 1000);
-            this.items.push(item);
+            items.push(item);
             return item;
         },
         deleteItem(_, args) {
-            const item = args.item;
-            this.items.splice(args.item.id, 1);
-            return item;
+            const id = args.id;
+            const item = items.find(item => item.id === id);
+            if (!item) return false;
+            items.splice(items.indexOf(item), 1);
+            return true;
         }
 
     }
@@ -60,3 +60,4 @@ const resolvers = {
 const server = new ApolloServer({ typeDefs, resolvers });
 
 server.listen();
+
